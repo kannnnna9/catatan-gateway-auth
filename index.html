@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kode Otorisasi Threads</title>
+<style>
+  :root { color-scheme: dark; }
+  body {
+    margin: 0; padding: 24px;
+    background: #14110f; color: #e8e3dd;
+    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    line-height: 1.6;
+  }
+  main { max-width: 34rem; margin: 0 auto; }
+  h1 { font-size: 1.25rem; margin: 0 0 1.5rem; font-weight: 600; }
+  .kode {
+    background: #1e1a17; border: 1px solid #3a322c; border-radius: 8px;
+    padding: 14px; margin: 12px 0 16px;
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-size: 0.8rem; word-break: break-all; user-select: all;
+    -webkit-user-select: all;
+  }
+  button {
+    background: #c2703d; color: #14110f; border: 0; border-radius: 8px;
+    padding: 12px 20px; font-size: 0.95rem; font-weight: 600;
+    cursor: pointer; font-family: inherit;
+  }
+  button:active { background: #a85c2e; }
+  .catatan { color: #a89e94; font-size: 0.85rem; margin-top: 20px; }
+  .galat { color: #e08a6a; }
+  .kosong { color: #a89e94; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Kode Otorisasi Threads</h1>
+  <div id="isi"><p class="kosong">Membaca…</p></div>
+  <p class="catatan">
+    Kode ini berlaku <strong>1 jam</strong> dan hanya bisa dipakai
+    <strong>sekali</strong>. Salin, lalu jalankan
+    <code>bash ~/tukar-token-threads.sh</code> di Termux.
+  </p>
+</main>
+<script>
+(function () {
+  var isi = document.getElementById('isi');
+  var q = new URLSearchParams(location.search);
+  var kode = q.get('code');
+  var galat = q.get('error');
+
+  function el(tag, cls, teks) {
+    var e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (teks) e.textContent = teks;
+    return e;
+  }
+
+  if (galat) {
+    isi.textContent = '';
+    isi.appendChild(el('p', 'galat', 'Otorisasi dibatalkan atau ditolak.'));
+    isi.appendChild(el('div', 'kode',
+      galat + (q.get('error_description') ? ' — ' + q.get('error_description') : '')));
+    isi.appendChild(el('p', 'kosong', 'Ulangi langkah 5 dari tuntunan.'));
+    return;
+  }
+
+  if (!kode) {
+    isi.textContent = '';
+    isi.appendChild(el('p', 'kosong',
+      'Belum ada kode. Halaman ini akan menampilkan kode setelah kamu ' +
+      'menyetujui izin lewat tautan otorisasi Threads.'));
+    return;
+  }
+
+  // Meta menambahkan "#_" di ujung URL; potongan itu bukan bagian kode.
+  kode = kode.replace(/#_$/, '');
+
+  isi.textContent = '';
+  var kotak = el('div', 'kode', kode);
+  isi.appendChild(kotak);
+
+  var tombol = el('button', null, 'Salin kode');
+  tombol.addEventListener('click', function () {
+    navigator.clipboard.writeText(kode).then(
+      function () { tombol.textContent = 'Tersalin'; },
+      function () {
+        tombol.textContent = 'Gagal — salin manual dari kotak di atas';
+        var r = document.createRange();
+        r.selectNodeContents(kotak);
+        var s = getSelection();
+        s.removeAllRanges();
+        s.addRange(r);
+      }
+    );
+  });
+  isi.appendChild(tombol);
+})();
+</script>
+</body>
+</html>
